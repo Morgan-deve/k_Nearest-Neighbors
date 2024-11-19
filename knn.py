@@ -3,15 +3,16 @@ from numpy import dot, linalg, mean
 from pandas import DataFrame , concat
 import matplotlib.pyplot as plt
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import LeaveOneOut
 import time
 
 
 mnist = fetch_openml('mnist_784')
-mnist_data: DataFrame = mnist.data[:10000]
-mnist_target: DataFrame = mnist.target[:10000]
+mnist_data: DataFrame = mnist.data[:1000]
+mnist_target: DataFrame = mnist.target[:1000]
 
-trainset = mnist_data[:10000 * 8//10]
-testset = mnist_data[10000 * 8//10:]
+trainset = mnist_data[:1000 * 8//10]
+testset = mnist_data[1000 * 8//10:]
 
 kfold = 10
 
@@ -83,34 +84,94 @@ def kaccuracy(k: int):
 
 
 
-accuracies = []
-usedK = []
+# accuracies = []
+# usedK = []
 
-for i in range(15):
-    k = (i*2) + 1
+# for i in range(15):
+#     k = (i*2) + 1
 
-    usedK.append(k)
+#     usedK.append(k)
 
-    knn = KNeighborsClassifier(n_neighbors=k, metric="euclidean")
-    knn.fit(trainset, mnist_target.loc[trainset.index])
-    predicts = knn.predict(trainset)
+#     knn = KNeighborsClassifier(n_neighbors=k, metric="euclidean")
+#     knn.fit(trainset, mnist_target.loc[trainset.index])
+#     predicts = knn.predict(trainset)
 
-    rightClassification = 0
-    for j in range(len(trainset.index)):
-        predictLabel = predicts[j]
-        realLabel = mnist_target[trainset.index[j]]
-        if (predictLabel == realLabel):
-            rightClassification += 1
+#     rightClassification = 0
+#     for j in range(len(trainset.index)):
+#         predictLabel = predicts[j]
+#         realLabel = mnist_target[trainset.index[j]]
+#         if (predictLabel == realLabel):
+#             rightClassification += 1
 
-    accuracies.append(
-        (rightClassification / len(trainset.index)))
+#     accuracies.append(
+#         (rightClassification / len(trainset.index)))
         
-plt.figure(figsize=(10, 5))
-plt.plot(usedK, accuracies, marker='o', linestyle='dashed', color='b')
-plt.title('Cross validation scores for different k')
-plt.xlabel('K')
-plt.ylabel('Cross validation accuracy')
-plt.grid(True)
-plt.show()
+# plt.figure(figsize=(10, 5))
+# plt.plot(usedK, accuracies, marker='o', linestyle='dashed', color='b')
+# plt.title('Cross validation scores for different k')
+# plt.xlabel('K')
+# plt.ylabel('Cross validation accuracy')
+# plt.grid(True)
+# plt.show()
 
+def removeambiguoussamples(dataset, target, k):
+    knn = KNeighborsClassifier(n_neighbors=k, metric='cosine')
+    loo = LeaveOneOut()
+    ambiguousinstances = []
+    
+    for trainindex, testindex in loo.split(dataset):
+        traindata, testsample = dataset.iloc[trainindex], dataset.iloc[testindex]
+        traintarget, testtarget = target.iloc[trainindex], target.iloc[testindex]
+        
+        knn.fit(traindata, traintarget)
+        predict = knn.predict(testsample)
+        
+        if predict[0] != testtarget.values[0]:
+            ambiguousinstances.append(testindex[0])
+            
+    ambiguousinstances = list(set(ambiguousinstances))
+    
+    cleandataset = dataset.drop(index=ambiguousinstances)
+    cleantarget = target.drop(index=ambiguousinstances)
+    return cleandataset, cleantarget
 
+cleandataset , cleantarget = removeambiguoussamples(trainset, mnist_target, 1)
+
+start = time.time()
+
+k = 1
+knn = KNeighborsClassifier(n_neighbors=k, metric='cosine')
+knn.fit(trainset, mnist_target.loc[trainset.index])
+predicts = knn.predict(testset)
+
+rightClassification = 0
+for j in range(len(testset.index)):
+    predictlable = predicts[j]
+    reallable = mnist_target[testset.index[j]]
+    if (predictlable == reallable):
+        rightClassification += 1
+
+print((rightClassification / len(testset.index)))
+
+end = time.time()
+print('time in cleaned date', end - start)
+    
+start = time.time()
+
+k = 1
+
+knn = KNeighborsClassifier(n_neighbors=k, metric="cosine")
+knn.fit(cleandataset, cleantarget.loc[cleandataset.index])
+predicts = knn.predict(testset)
+
+rightclassification = 0
+for j in range(len(testset.index)):
+    predictlable = predicts[j]
+    reallable = mnist_target[testset.index[j]]
+    if (predictlable == reallable):
+        rightclassification += 1
+        
+print(rightClassification / len(testset.index))
+
+end = time.time()
+print('time in cleaned dataset:', end - start)   
