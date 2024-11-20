@@ -8,11 +8,11 @@ import time
 
 
 mnist = fetch_openml('mnist_784')
-mnist_data: DataFrame = mnist.data[:1000]
-mnist_target: DataFrame = mnist.target[:1000]
+mnist_data: DataFrame = mnist.data[:10000]
+mnist_target: DataFrame = mnist.target[:10000]
 
-trainset = mnist_data[:1000 * 8//10]
-testset = mnist_data[1000 * 8//10:]
+trainset = mnist_data[:10000 * 8//10]
+testset = mnist_data[10000 * 8//10:]
 
 kfold = 10
 
@@ -73,7 +73,7 @@ def kaccuracy(k: int):
 # print (f"Accuracy for k=7: {kaccuracy(7)}")
 # print (f"Accuracy for k=8: {kaccuracy(8)}")
 # print (f"Accuracy for k=9: {kaccuracy(9)}")
-# print (f"Accuracy for k=10: {kaccuracy(10)}")
+print (f"Accuracy for k=10: {kaccuracy(10)}")
 
 # accuracies = []
 # usedK = []
