@@ -73,7 +73,7 @@ def kaccuracy(k: int):
 # print (f"Accuracy for k=7: {kaccuracy(7)}")
 # print (f"Accuracy for k=8: {kaccuracy(8)}")
 # print (f"Accuracy for k=9: {kaccuracy(9)}")
-print (f"Accuracy for k=10: {kaccuracy(10)}")
+# print (f"Accuracy for k=10: {kaccuracy(10)}")
 
 # accuracies = []
 # usedK = []
@@ -137,41 +137,49 @@ def removeambiguoussamples(dataset, target, k):
 
 cleandataset , cleantarget = removeambiguoussamples(trainset, mnist_target, 1)
 
-start = time.time()
+# start = time.time()
 
-k = 1
-knn = KNeighborsClassifier(n_neighbors=k, metric='cosine')
-knn.fit(trainset, mnist_target.loc[trainset.index])
-predicts = knn.predict(testset)
+# k = 1
+# knn = KNeighborsClassifier(n_neighbors=k, metric='cosine')
+# knn.fit(trainset, mnist_target.loc[trainset.index])
+# predicts = knn.predict(testset)
 
-rightClassification = 0
-for j in range(len(testset.index)):
-    predictlable = predicts[j]
-    reallable = mnist_target[testset.index[j]]
-    if (predictlable == reallable):
-        rightClassification += 1
+# rightClassification = 0
+# for j in range(len(testset.index)):
+#     predictlable = predicts[j]
+#     reallable = mnist_target[testset.index[j]]
+#     if (predictlable == reallable):
+#         rightClassification += 1
 
-print((rightClassification / len(testset.index)))
+# print((rightClassification / len(testset.index)))
 
-end = time.time()
-print('time in cleaned date', end - start)
+# end = time.time()
+# print('time in cleaned date', end - start)
+
+results = []
+   
+for _ in range(20):
+    start = time.time()
+
+    k = 1
+
+    knn = KNeighborsClassifier(n_neighbors=k, metric="cosine")
+    knn.fit(cleandataset, cleantarget.loc[cleandataset.index])
+    predicts = knn.predict(testset)
+
+    rightclassification = 0
+    for j in range(len(testset.index)):
+        predictlable = predicts[j]
+        reallable = mnist_target[testset.index[j]]
+        if (predictlable == reallable):
+            rightclassification += 1
+            
+    acuuracies = (rightclassification / len(testset.index))
     
-start = time.time()
-
-k = 1
-
-knn = KNeighborsClassifier(n_neighbors=k, metric="cosine")
-knn.fit(cleandataset, cleantarget.loc[cleandataset.index])
-predicts = knn.predict(testset)
-
-rightclassification = 0
-for j in range(len(testset.index)):
-    predictlable = predicts[j]
-    reallable = mnist_target[testset.index[j]]
-    if (predictlable == reallable):
-        rightclassification += 1
-        
-print(rightClassification / len(testset.index))
-
-end = time.time()
-print('time in cleaned dataset:', end - start)   
+    end = time.time()
+    
+    times = end - start
+    results.append(times)
+    print(f'Time in cleaned dataset for iteration {_ + 1}: {times:.4f} seconds')
+    
+    print("Accuracy results for each iteration:", results)   
