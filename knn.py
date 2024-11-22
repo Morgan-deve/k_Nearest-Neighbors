@@ -182,4 +182,4 @@ for _ in range(20):
     results.append(times)
     print(f'Time in cleaned dataset for iteration {_ + 1}: {times:.4f} seconds')
     
-    print("Accuracy results for each iteration:", results)   
+    print("Accuracy results for each iteration:", results)
